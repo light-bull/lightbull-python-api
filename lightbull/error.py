@@ -1,0 +1,2 @@
+class LightbullError(Exception):
+    pass
