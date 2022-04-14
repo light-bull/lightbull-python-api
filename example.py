@@ -6,7 +6,7 @@ bull = lightbull.Lightbull("http://localhost:8080/api", "lightbull")
 
 # Config
 config = bull.config()
-effect_map = config['effects']
+effect_map = config["effects"]
 
 # Create show
 show = bull.shows.new_show("Test")
@@ -51,14 +51,14 @@ for show in bull.shows.get_shows():
         print(f"    {visual['name']} ({visual['id']})")
 
         # groups
-        if visual['groups']:
-            for group in visual['groups']:
-                effect = effect_map[group['effect']['type']]
-                parts = ', '.join(group['parts'])
+        if visual["groups"]:
+            for group in visual["groups"]:
+                effect = effect_map[group["effect"]["type"]]
+                parts = ", ".join(group["parts"])
                 print(f"        {effect}: {parts} ({group['id']})")
 
                 # parameters
-                for parameter in group['effect']['parameters']:
+                for parameter in group["effect"]["parameters"]:
                     print(f"            {parameter['name']} - {parameter['type']} ({parameter['id']})")
                     print(f"                Cur: {parameter['current']}")
                     print(f"                Def: {parameter['current']}")

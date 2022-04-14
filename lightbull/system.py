@@ -3,6 +3,6 @@ class LightbullSystem:
         self._lightbull = lightbull
 
     def shutdown(self):
-        return self._lightbull._send_post('shutdown')
+        return self._lightbull._send_post("shutdown")
 
     # TODO: ethernet

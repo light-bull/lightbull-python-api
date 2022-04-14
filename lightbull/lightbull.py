@@ -14,13 +14,13 @@ class Lightbull:
         self.system = LightbullSystem(self)
 
     def config(self):
-        return self._send_get('config')
+        return self._send_get("config")
 
     def _auth(self, password):
-        r = requests.post(self._build_url('auth'), json={'password': password})
+        r = requests.post(self._build_url("auth"), json={"password": password})
         if r.status_code != 200:
             raise LightbullError("Authentication failed")
-        return r.json()['jwt']
+        return r.json()["jwt"]
 
     def _send_get(self, *parts):
         r = requests.get(self._build_url(*parts), headers=self._get_headers())
@@ -46,7 +46,7 @@ class Lightbull:
         r = requests.put(self._build_url(*parts), headers=self._get_headers(), json=data)
         if not r.ok:
             raise LightbullError(f"API Error: HTTP {r.status_code} - {r.text}")
-        
+
         try:
             return r.json()
         except:
@@ -58,7 +58,7 @@ class Lightbull:
             raise LightbullError(f"API Error: HTTP {r.status_code} - {r.text}")
 
     def _build_url(self, *parts):
-        return '/'.join([self._api_url, *parts])
-    
+        return "/".join([self._api_url, *parts])
+
     def _get_headers(self):
-        return {'Authorization': f'Bearer {self._jwt}'}
+        return {"Authorization": f"Bearer {self._jwt}"}
