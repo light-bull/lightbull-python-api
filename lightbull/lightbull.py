@@ -24,19 +24,19 @@ class Lightbull:
 
     def _send_get(self, *parts):
         r = requests.get(self._build_url(*parts), headers=self._get_headers())
-        if r.status_code != 200:
+        if not r.ok:
             raise LightbullError(f"API Error: HTTP {r.status_code} - {r.text}")
 
         try:
             return r.json()
         except:
             return None
-    
+
     def _send_post(self, *parts, data={}):
         r = requests.post(self._build_url(*parts), headers=self._get_headers(), json=data)
-        if r.status_code != 200:
+        if not r.ok:
             raise LightbullError(f"API Error: HTTP {r.status_code} - {r.text}")
-        
+
         try:
             return r.json()
         except:
@@ -44,7 +44,7 @@ class Lightbull:
 
     def _send_put(self, *parts, data={}):
         r = requests.put(self._build_url(*parts), headers=self._get_headers(), json=data)
-        if r.status_code != 200:
+        if not r.ok:
             raise LightbullError(f"API Error: HTTP {r.status_code} - {r.text}")
         
         try:
@@ -54,7 +54,7 @@ class Lightbull:
 
     def _send_delete(self, *parts):
         r = requests.delete(self._build_url(*parts), headers=self._get_headers())
-        if r.status_code != 200:
+        if not r.ok:
             raise LightbullError(f"API Error: HTTP {r.status_code} - {r.text}")
 
     def _build_url(self, *parts):

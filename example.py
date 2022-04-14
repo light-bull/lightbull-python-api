@@ -39,15 +39,15 @@ bull.shows.update_current(show["id"], visual["id"])
 
 # Show everything
 print("# Data")
-for show in bull.shows.shows():
+for show in bull.shows.get_shows():
     fav = ""
     if show["favorite"]:
         fav = "* "
     print(f"{fav}{show['name']} ({show['id']})")
 
     # visuals
-    for visual_id in show["visuals"]:
-        visual = bull.shows.visual(visual_id)
+    for visual_id in show["visualIds"]:
+        visual = bull.shows.get_visual(visual_id)
         print(f"    {visual['name']} ({visual['id']})")
 
         # groups
@@ -66,9 +66,9 @@ for show in bull.shows.shows():
 print()
 
 # Current
-current = bull.shows.current()
-current_show = bull.shows.show(current["show"])
-current_visual = bull.shows.visual(current["visual"])
+current = bull.shows.get_current()
+current_show = bull.shows.get_show(current["showId"])
+current_visual = bull.shows.get_visual(current["visualId"])
 
 print("# Currently playing")
 print(f"Show: {current_show['name']} ({current_show['id']})")
