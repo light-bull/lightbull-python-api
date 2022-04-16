@@ -1,5 +1,7 @@
 import requests
 
+from lightbull.simulator import LightbullSimulator
+
 from .error import LightbullError
 from .shows import LightbullShows
 from .system import LightbullSystem
@@ -12,6 +14,7 @@ class Lightbull:
 
         self.shows = LightbullShows(self)
         self.system = LightbullSystem(self)
+        self.simulator = LightbullSimulator(self)
 
     def config(self):
         return self._send_get("config")
