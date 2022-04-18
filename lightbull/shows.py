@@ -72,9 +72,9 @@ class LightbullShows:
 
     def update_parameter(self, parameter_id, current=None, default=None):
         data = {}
-        if current:
+        if current is not None:
             data["current"] = current
-        if default:
+        if default is not None:
             data["default"] = default
 
         self._lightbull._send_put("parameters", parameter_id, data=data)
