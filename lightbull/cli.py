@@ -3,8 +3,9 @@ import json
 import os
 import sys
 
-from rich.console import Console
+from rich.console import Console, Group
 from rich.table import Table
+from rich.panel import Panel
 
 from .lightbull import Lightbull, LightbullError
 
@@ -35,6 +36,8 @@ class LightbullCLI:
             self._run_groups()
         elif self._args.command == "parameters":
             self._run_parameters()
+        elif self._args.command == "current":
+            self._run_current()
         else:
             self._print_help()
 
@@ -131,34 +134,43 @@ class LightbullCLI:
         cmd_parameters_update.add_argument("--current", type=str, help="Current value as JSON")
         cmd_parameters_update.add_argument("--default", type=str, help="Default value as JSON")
 
+        # current
+        cmd_current = subparser.add_parser("current")
+        cmd_current_subparser = cmd_current.add_subparsers(title="actions", dest="action")
+        # current get
+        cmd_current_subparser.add_parser("get")
+        # current update
+        cmd_current_update = cmd_current_subparser.add_parser("update")
+        cmd_current_update.add_argument("--show-id", type=str, help="ID of show")
+        cmd_current_update.add_argument("--visual-id", type=str, help="ID of visual")
+        # current blank
+        cmd_current_subparser.add_parser("blank")
+
         self._args = parser.parse_args()
         self._print_help = parser.print_help
 
     def _run_config(self):
         config = self._api.config()
 
-        table = Table(title="Parts", width=80)
+        self._console.print("[bold]Parts:[/bold]")
+        for part in config["parts"]:
+            self._console.print(part)
+
+        self._console.print()
+
+        self._console.print("[bold]Effects:[/bold]")
+        table = Table()
         table.add_column("Name")
-        for name in config["parts"]:
-            table.add_row(name)
+        table.add_column("Type")
+        for type, name in config["effects"].items():
+            table.add_row(name, type)
         self._console.print(table)
 
         self._console.print()
 
-        table = Table(title="Effects", width=80)
-        table.add_column("Name")
-        table.add_column("Title")
-        for name, title in config["effects"].items():
-            table.add_row(name, title)
-        self._console.print(table)
-
-        self._console.print()
-
-        table = Table(title="Features", width=80)
-        table.add_column("Name")
-        for name in config["features"]:
-            table.add_row(name)
-        self._console.print(table)
+        self._console.print("[bold]Features:[/bold]")
+        for feature in config["features"]:
+            self._console.print(feature)
 
     def _run_shutdown(self):
         self._api.system.shutdown()
@@ -166,7 +178,7 @@ class LightbullCLI:
     def _run_shows(self):
         if self._args.action == "list":
             shows = self._api.shows.get_shows()
-            table = Table(title="Shows", width=80)
+            table = Table()
             table.add_column("Name")
             table.add_column("ID")
             table.add_column("Favorite")
@@ -177,11 +189,12 @@ class LightbullCLI:
             try:
                 show = self._api.shows.get_show(self._args.id)
 
-                self._console.print("[bold]Name: {}".format(show["name"]))
-                self._console.print("[bold]Favorite: {}".format("Yes" if show["name"] else "No"))
+                self._console.print("[bold]Name:[/bold] {}".format(show["name"]))
+                self._console.print("[bold]Favorite:[/bold] {}".format("Yes" if show["name"] else "No"))
                 self._console.print()
 
-                table = Table(title="Visuals", width=80)
+                self._console.print("[bold]Visuals:[/bold]")
+                table = Table()
                 table.add_column("Name")
                 table.add_column("ID")
                 for visual in show["visuals"]:
@@ -216,22 +229,9 @@ class LightbullCLI:
                 self._console.print("[bold]Name: {}".format(visual["name"]))
                 self._console.print()
 
-                table = Table(title="Groups")
-                table.add_column("ID")
-                table.add_column("Parts")
-                table.add_column("Effect")
-                table.add_column("Parameters")
-                for groups in visual["groups"]:
-                    param_list = []
-                    for param in groups["effect"]["parameters"]:
-                        param_list.append("{} ({})".format(param["name"], param["id"]))
-                    table.add_row(
-                        groups["id"],
-                        os.linesep.join(groups["parts"]),
-                        groups["effect"]["type"],
-                        os.linesep.join(param_list),
-                    )
-                self._console.print(table)
+                for group in visual["groups"]:
+                    rendered_group = self._render_group(group)
+                    self._console.print(Panel(rendered_group))
             except LightbullError as e:
                 self._fail("Cannot get visual: {}".format(e))
         elif self._args.action == "new":
@@ -256,36 +256,8 @@ class LightbullCLI:
         if self._args.action == "get":
             try:
                 group = self._api.shows.get_group(self._args.id)
-
-                self._console.print("[bold]Effect: {}".format(group["effect"]["type"]))
-
-                self._console.print()
-
-                table = Table(title="Parts")
-                table.add_column("Name")
-                for name in group["parts"]:
-                    table.add_row(name)
-                self._console.print(table)
-
-                self._console.print()
-
-                table = Table(title="Parameters")
-                table.add_column("ID")
-                table.add_column("Name")
-                table.add_column("Key")
-                table.add_column("Type")
-                table.add_column("Default value")
-                table.add_column("Current value")
-                for parameter in group["effect"]["parameters"]:
-                    table.add_row(
-                        parameter["id"],
-                        parameter["name"],
-                        parameter["key"],
-                        parameter["type"],
-                        str(parameter["default"]),
-                        str(parameter["current"]),
-                    )
-                self._console.print(table)
+                rendered_group = self._render_group(group)
+                self._console.print(rendered_group)
             except LightbullError as e:
                 self._fail("Cannot get group: {}".format(e))
         elif self._args.action == "new":
@@ -312,7 +284,7 @@ class LightbullCLI:
         if self._args.action == "get":
             try:
                 parameter = self._api.shows.get_parameter(self._args.id)
-                table = Table(title="Parameters")
+                table = Table()
                 table.add_column("Name")
                 table.add_column("Key")
                 table.add_column("Type")
@@ -340,6 +312,64 @@ class LightbullCLI:
                 self._fail("Cannot update parameter: {}".format(e))
         else:
             self._print_help()
+
+    def _run_current(self):
+        if self._args.action == "get":
+            try:
+                current = self._api.shows.get_current()
+                self._console.print("[bold]Show: {}".format(current["showId"]))
+                self._console.print("[bold]Visual: {}".format(current["visualId"]))
+            except LightbullError as e:
+                self._fail("Cannot get current show/visual: {}".format(e))
+        elif self._args.action == "update":
+            try:
+                self._api.shows.update_current(self._args.show_id, self._args.visual_id)
+            except LightbullError as e:
+                self._fail("Cannot update current show/visual: {}".format(e))
+        elif self._args.action == "blank":
+            try:
+                self._api.shows.blank()
+            except LightbullError as e:
+                self._fail("Cannot set blank: {}".format(e))
+        else:
+            self._print_help()
+
+    def _render_group(self, group):
+        lines = [
+            "[bold]Group ID:[/bold] {}".format(group["id"]),
+            "",
+            "[bold]Effect:[/bold] {}".format(group["effect"]["type"]),
+            "",
+            "[bold]Parts:[/bold]",
+        ]
+
+        for name in group["parts"]:
+            lines.append(name)
+
+        lines.extend(
+            [
+                "",
+                "[bold]Parameters:[/bold]",
+            ]
+        )
+
+        table = Table()
+        table.add_column("ID")
+        table.add_column("Name")
+        table.add_column("Key")
+        table.add_column("Type")
+        table.add_column("Default value")
+        table.add_column("Current value")
+        for parameter in group["effect"]["parameters"]:
+            table.add_row(
+                parameter["id"],
+                parameter["name"],
+                parameter["key"],
+                parameter["type"],
+                str(parameter["default"]),
+                str(parameter["current"]),
+            )
+        return Group(os.linesep.join(lines), table)
 
     def _fail(self, msg):
         self._error_console.print("[bold red]{}".format(msg))
