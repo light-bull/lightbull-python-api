@@ -366,8 +366,8 @@ class LightbullCLI:
                 parameter["name"],
                 parameter["key"],
                 parameter["type"],
-                str(parameter["default"]),
-                str(parameter["current"]),
+                json.dumps(parameter["default"]),
+                json.dumps(parameter["current"]),
             )
         return Group(os.linesep.join(lines), table)
 
