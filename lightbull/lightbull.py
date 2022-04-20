@@ -1,6 +1,9 @@
 import base64
+import configparser
 import datetime
+from importlib.resources import path
 import json
+import pathlib
 import requests
 
 from .error import LightbullError
@@ -9,11 +12,8 @@ from .system import LightbullSystem
 
 
 class Lightbull:
-    def __init__(self, api_url, password):
-        self._api_url = api_url
-        self._password = password
-        self._jwt = None
-
+    def __init__(self, api_url=None, password=None):
+        self._prepare_auth(api_url, password)
         self._auth()
 
         self.shows = LightbullShows(self)
@@ -24,6 +24,21 @@ class Lightbull:
 
     def simulator(self):
         return self._send_get("simulator")
+
+    def _prepare_auth(self, api_url, password):
+        if api_url is not None and password is not None:
+            # everything there, let's use it
+            self._api_url = api_url
+            self._password = password
+        else:
+            # try to read config file
+            try:
+                config = configparser.ConfigParser()
+                config.read(pathlib.Path.home() / ".lightbull")
+                self._api_url = config["lightbull"]["api_url"]
+                self._password = config["lightbull"]["password"]
+            except KeyError:
+                raise LightbullError("Cannot retrieve API URL and password from config file") from None
 
     def _auth(self):
         # get jwt
@@ -81,7 +96,7 @@ class Lightbull:
             raise LightbullError(f"API Error: HTTP {r.status_code} - {r.text}")
 
     def _build_url(self, *parts):
-        return "/".join([self._api_url, *parts])
+        return "/api/".join([self._api_url, *parts])
 
     def _get_headers(self):
         return {"Authorization": f"Bearer {self._jwt}"}

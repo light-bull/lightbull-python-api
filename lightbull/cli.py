@@ -19,7 +19,10 @@ class LightbullCLI:
         # parse arguments and connect to lightbull API
         self._parse_arguments()
         try:
-            self._api = Lightbull(self._args.url, self._args.password)
+            if self._args.url and self._args.password:
+                self._api = Lightbull(self._args.url, self._args.password)
+            else:
+                self._api = Lightbull()
         except (LightbullError, OSError) as e:
             self._fail("Cannot connect to lightbull API: {}".format(e))
 
@@ -46,8 +49,8 @@ class LightbullCLI:
         subparser = parser.add_subparsers(title="commands", dest="command")
 
         # global parameters
-        parser.add_argument("-u", "--url", type=str, required=True, help="URL of the server")
-        parser.add_argument("-p", "--password", type=str, required=True, help="Password for API")
+        parser.add_argument("-u", "--url", type=str, help="URL of the server")
+        parser.add_argument("-p", "--password", type=str, help="Password for API")
 
         # the simple subcommands...
         subparser.add_parser("config")

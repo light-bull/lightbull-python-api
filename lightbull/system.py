@@ -5,4 +5,15 @@ class LightbullSystem:
     def shutdown(self):
         return self._lightbull._send_post("shutdown")
 
-    # TODO: ethernet
+    def get_ethernet(self):
+        return self._lightbull._send_get("ethernet")
+
+    def update_ethernet(self, mode, ip=None, gateway=None, dns=None):
+        data = {
+            "mode": mode,
+            "ip": ip,
+            "gateway": gateway,
+            "dns": dns,
+        }
+
+        self._lightbull._send_put("ethernet", data=data)

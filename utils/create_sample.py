@@ -2,7 +2,7 @@
 
 import lightbull
 
-bull = lightbull.Lightbull("http://localhost:8080/api", "lightbull")
+bull = lightbull.Lightbull("http://localhost:8080", "lightbull")
 
 # Get some data
 config = bull.config()

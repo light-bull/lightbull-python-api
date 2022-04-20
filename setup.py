@@ -5,7 +5,7 @@ here = path.abspath(path.dirname(__file__))
 
 setup(
     name="lightbull",
-    version="0.0.1",
+    version="0.0.2",
     description="Python API binding for lightbull LED controller",
     url="https://github.com/light-bull",
     author="Sven Hertle",
