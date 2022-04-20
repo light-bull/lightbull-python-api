@@ -11,6 +11,6 @@ setup(
     author="Sven Hertle",
     author_email="hertle@narfi.net",
     python_requires=">=3.6",
-    install_requires=["requests"],
+    install_requires=["requests", "rich"],
     packages=find_packages(),
 )
