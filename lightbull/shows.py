@@ -92,4 +92,4 @@ class LightbullShows:
         self._lightbull._send_put("current", data=data)
 
     def blank(self):
-        return self._lightbull._send_put("current", data={"blank": True})
+        return self._lightbull._send_delete("current")

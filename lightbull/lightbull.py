@@ -96,7 +96,7 @@ class Lightbull:
             raise LightbullError(f"API Error: HTTP {r.status_code} - {r.text}")
 
     def _build_url(self, *parts):
-        return "/api/".join([self._api_url, *parts])
+        return "/".join([self._api_url, "api", *parts])
 
     def _get_headers(self):
         return {"Authorization": f"Bearer {self._jwt}"}
