@@ -52,13 +52,18 @@ class LightbullCLI:
         parser.add_argument("-u", "--url", type=str, help="URL of the server")
         parser.add_argument("-p", "--password", type=str, help="Password for API")
 
-        # the simple subcommands...
-        subparser.add_parser("config")
+        # config
+        self._cmd_config = subparser.add_parser("config")
+        cmd_config_subparser = self._cmd_config.add_subparsers(title="actions", dest="action")
+        cmd_config_subparser.add_parser("get")
+        cmd_config_subparser.add_parser("parts")
+
+        # shutdown
         subparser.add_parser("shutdown")
 
         # shows
-        cmd_shows = subparser.add_parser("shows")
-        cmd_shows_subparser = cmd_shows.add_subparsers(title="actions", dest="action")
+        self._cmd_shows = subparser.add_parser("shows")
+        cmd_shows_subparser = self._cmd_shows.add_subparsers(title="actions", dest="action")
         # shows list
         cmd_shows_subparser.add_parser("list")
         # shows get
@@ -84,8 +89,8 @@ class LightbullCLI:
         cmd_shows_delete.add_argument("--id", type=str, required=True, help="ID of show")
 
         # visuals
-        cmd_visuals = subparser.add_parser("visuals")
-        cmd_visuals_subparser = cmd_visuals.add_subparsers(title="actions", dest="action")
+        self._cmd_visuals = subparser.add_parser("visuals")
+        cmd_visuals_subparser = self._cmd_visuals.add_subparsers(title="actions", dest="action")
         # visuals get
         cmd_visuals_get = cmd_visuals_subparser.add_parser("get")
         cmd_visuals_get.add_argument("--id", type=str, required=True, help="ID of visual")
@@ -104,8 +109,8 @@ class LightbullCLI:
         cmd_visuals_delete.add_argument("--id", type=str, required=True, help="ID of visual")
 
         # groups
-        cmd_groups = subparser.add_parser("groups")
-        cmd_groups_subparser = cmd_groups.add_subparsers(title="actions", dest="action")
+        self._cmd_groups = subparser.add_parser("groups")
+        cmd_groups_subparser = self._cmd_groups.add_subparsers(title="actions", dest="action")
         # groups get
         cmd_groups_get = cmd_groups_subparser.add_parser("get")
         cmd_groups_get.add_argument("--id", type=str, required=True, help="ID of group")
@@ -126,8 +131,8 @@ class LightbullCLI:
         cmd_groups_delete.add_argument("--id", type=str, required=True, help="ID of group")
 
         # parameters
-        cmd_parameters = subparser.add_parser("parameters")
-        cmd_parameters_subparser = cmd_parameters.add_subparsers(title="actions", dest="action")
+        self._cmd_parameters = subparser.add_parser("parameters")
+        cmd_parameters_subparser = self._cmd_parameters.add_subparsers(title="actions", dest="action")
         # parameters get
         cmd_parameters_get = cmd_parameters_subparser.add_parser("get")
         cmd_parameters_get.add_argument("--id", type=str, required=True, help="ID of parameter")
@@ -138,8 +143,8 @@ class LightbullCLI:
         cmd_parameters_update.add_argument("--default", type=str, help="Default value as JSON")
 
         # current
-        cmd_current = subparser.add_parser("current")
-        cmd_current_subparser = cmd_current.add_subparsers(title="actions", dest="action")
+        self._cmd_current = subparser.add_parser("current")
+        cmd_current_subparser = self._cmd_current.add_subparsers(title="actions", dest="action")
         # current get
         cmd_current_subparser.add_parser("get")
         # current update
@@ -153,27 +158,33 @@ class LightbullCLI:
         self._print_help = parser.print_help
 
     def _run_config(self):
-        config = self._api.config.get()
+        if self._args.action == "get":
+            config = self._api.config.get()
 
-        self._console.print("[bold]Parts:[/bold]")
-        for part in config["parts"]:
-            self._console.print(part)
+            self._console.print("[bold]Parts:[/bold]")
+            for part in config["parts"]:
+                self._console.print(part)
 
-        self._console.print()
+            self._console.print()
 
-        self._console.print("[bold]Effects:[/bold]")
-        table = Table()
-        table.add_column("Name")
-        table.add_column("Type")
-        for type, name in config["effects"].items():
-            table.add_row(name, type)
-        self._console.print(table)
+            self._console.print("[bold]Effects:[/bold]")
+            table = Table()
+            table.add_column("Name")
+            table.add_column("Type")
+            for type, name in config["effects"].items():
+                table.add_row(name, type)
+            self._console.print(table)
 
-        self._console.print()
+            self._console.print()
 
-        self._console.print("[bold]Features:[/bold]")
-        for feature in config["features"]:
-            self._console.print(feature)
+            self._console.print("[bold]Features:[/bold]")
+            for feature in config["features"]:
+                self._console.print(feature)
+        elif self._args.action == "parts":
+            parts = self._api.config.get_parts()
+            print(parts)
+        else:
+            self._cmd_config.print_help()
 
     def _run_shutdown(self):
         self._api.system.shutdown()
@@ -222,7 +233,7 @@ class LightbullCLI:
             except LightbullError as e:
                 self._fail("Cannot delete show: {}".format(e))
         else:
-            self._print_help()
+            self._cmd_shows.print_help()
 
     def _run_visuals(self):
         if self._args.action == "get":
@@ -253,7 +264,7 @@ class LightbullCLI:
             except LightbullError as e:
                 self._fail("Cannot delete visual: {}".format(e))
         else:
-            self._print_help()
+            self._cmd_visuals.print_help()
 
     def _run_groups(self):
         if self._args.action == "get":
@@ -281,7 +292,7 @@ class LightbullCLI:
             except LightbullError as e:
                 self._fail("Cannot delete group: {}".format(e))
         else:
-            self._print_help()
+            self._cmd_visuals.print_help()
 
     def _run_parameters(self):
         if self._args.action == "get":
@@ -314,7 +325,7 @@ class LightbullCLI:
             except LightbullError as e:
                 self._fail("Cannot update parameter: {}".format(e))
         else:
-            self._print_help()
+            self._cmd_parameters.print_help()
 
     def _run_current(self):
         if self._args.action == "get":
@@ -335,7 +346,7 @@ class LightbullCLI:
             except LightbullError as e:
                 self._fail("Cannot set blank: {}".format(e))
         else:
-            self._print_help()
+            self._cmd_current.print_help()
 
     def _render_group(self, group):
         lines = [
