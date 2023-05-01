@@ -5,7 +5,7 @@ import lightbull
 bull = lightbull.Lightbull("http://localhost:8080", "lightbull")
 
 # Get some data
-config = bull.config()
+config = bull.config.get()
 parts = config["parts"]
 
 # Create show

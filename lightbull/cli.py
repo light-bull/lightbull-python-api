@@ -153,7 +153,7 @@ class LightbullCLI:
         self._print_help = parser.print_help
 
     def _run_config(self):
-        config = self._api.config()
+        config = self._api.config.get()
 
         self._console.print("[bold]Parts:[/bold]")
         for part in config["parts"]:

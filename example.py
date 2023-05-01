@@ -5,7 +5,7 @@ import lightbull
 bull = lightbull.Lightbull("http://localhost:8080/api", "lightbull")
 
 # Config
-config = bull.config()
+config = bull.config.get()
 effect_map = config["effects"]
 
 # Create show

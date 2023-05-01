@@ -6,6 +6,7 @@ import json
 import pathlib
 import requests
 
+from .config import LightbullConfig
 from .error import LightbullError
 from .shows import LightbullShows
 from .system import LightbullSystem
@@ -16,11 +17,9 @@ class Lightbull:
         self._prepare_auth(api_url, password)
         self._auth()
 
+        self.config = LightbullConfig(self)
         self.shows = LightbullShows(self)
         self.system = LightbullSystem(self)
-
-    def config(self):
-        return self._send_get("config")
 
     def simulator(self):
         return self._send_get("simulator")
